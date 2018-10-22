@@ -51,11 +51,13 @@ public class CircleView extends View {
         super.onLayout(changed, left, top, right, bottom);
     }
 
-    private class ParabolaListerer implements ValueAnimator.AnimatorUpdateListener{
+    private  class ParabolaListerer implements ValueAnimator.AnimatorUpdateListener{
         private View target;
+        private OnAnimFinishListener onAnimFinishListener;
 
-        public ParabolaListerer(View target) {
+        public ParabolaListerer(View target, OnAnimFinishListener onAnimFinishListener) {
             this.target = target;
+            this.onAnimFinishListener = onAnimFinishListener;
         }
 
         @Override
@@ -63,17 +65,32 @@ public class CircleView extends View {
             PointF pointF = (PointF) animation.getAnimatedValue();
             target.setX(pointF.x);
             target.setY(pointF.y);
-            //target.setAlpha(1 - animation.getAnimatedFraction());
+            target.setScaleX(1+animation.getAnimatedFraction());
+            target.setScaleY(1+animation.getAnimatedFraction());
+            target.setAlpha(2- animation.getAnimatedFraction()*2);
+            if(1-animation.getAnimatedFraction()==0){
+                onAnimFinishListener.OnAnimFinish(target);
+            }
         }
+
+
     }
 
-    public void startAnim(PointF pointF){
+    public void startAnim(PointF pointF,OnAnimFinishListener onAnimFinishListener){
+        setX(pointF.x);
+        setY(pointF.y);
         ParabolaEvaluator parabolaEvaluator=new ParabolaEvaluator();
-        ValueAnimator animator = ValueAnimator.ofObject(parabolaEvaluator,pointF,new PointF());
-        ParabolaListerer listerer=new ParabolaListerer(this);
+        Random random = new Random();//用于实现随机功能
+        PointF ponitF=new PointF((float) (random.nextFloat()-0.5),random.nextFloat());
+        ValueAnimator animator = ValueAnimator.ofObject(parabolaEvaluator,pointF,ponitF);
+        ParabolaListerer listerer=new ParabolaListerer(this,onAnimFinishListener);
         animator.addUpdateListener(listerer);
         animator.setTarget(this);
-        animator.setDuration(3000);
+        animator.setDuration(5000);
         animator.start();
+    }
+
+    public interface  OnAnimFinishListener{
+        void  OnAnimFinish(View view);
     }
 }
